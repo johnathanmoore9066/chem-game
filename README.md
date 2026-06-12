@@ -39,6 +39,10 @@ Not a Git wizard? No problem. Drop an email to **contribute@elementfusion.org** 
 * **Use:** `Natural gas: heating, cooking, electricity generation.`
 * **Fun Fact:** `Methane is actually completely odorless! The "gas smell" we associate with it is mercaptan, a sulfur compound intentionally added by utility companies so human noses can easily detect leaks. (And no, space does not smell like a fart.)`
 
+### Here's a couple of TODOs to get started: Feel free to suggest more!
+
+steel, brass, silica, silicon-carbide, silane, magnesium-oxide, zinc-oxide, copper-sulfate, rust, ammonium-nitrate, nitrous-oxide, hydrazine, acetone, hydrogen-cyanide, urea
+
 ---
 
 ## 🚀 Road Map & Future Chaos
