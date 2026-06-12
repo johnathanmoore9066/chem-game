@@ -88,7 +88,7 @@ House rules (the chemistry review board is strict but fair):
 
 No GitHub account, no problem. Fill out the template and email it to:
 
-**`YOUR-CONTACT-EMAIL@example.com`** <!-- TODO: replace before launch -->
+**`contact@elementfusion.org`** 
 
 Subject line: `[Element Fusion] New reaction: <compound name>`
 
