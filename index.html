@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Element Fusion — Chemistry Discovery</title>
+
+  <!-- Fonts: graceful fallback to system fonts if offline -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- ====== Top bar: brand, progress, achievements, reset ====== -->
+    <header class="topbar">
+      <h1 class="brand">Element <span class="spark">⚛</span> Fusion</h1>
+      <p class="tagline">Combine. Discover. Learn why.</p>
+      <div class="progress-wrap">
+        <div class="progress-bar"><div id="progress-fill"></div></div>
+        <span id="progress-text">0 / 0 discovered</span>
+      </div>
+      <button id="trophy-btn" class="topbar-btn" type="button">
+        🏆 <span id="trophy-count">0/0</span>
+      </button>
+      <button id="reset-btn" class="topbar-btn" type="button">Reset</button>
+    </header>
+
+    <!-- ====== Three panels ====== -->
+    <main class="panels">
+
+      <!-- Left: Inventory -->
+      <section class="panel" aria-label="Inventory">
+        <div class="panel-head">
+          <h2>Inventory</h2>
+          <input id="search" type="search" placeholder="Search name, formula, or tag…" autocomplete="off">
+        </div>
+        <div class="panel-body">
+          <div id="elements-section">
+            <p class="inv-section-label">Elements</p>
+            <div id="elements-grid" class="tile-grid"></div>
+          </div>
+          <div id="compounds-section" hidden>
+            <p class="inv-section-label">Compounds &amp; Materials</p>
+            <div id="compounds-grid" class="tile-grid"></div>
+          </div>
+          <p id="inventory-empty" class="empty-note" hidden>Nothing matches that search.</p>
+        </div>
+      </section>
+
+      <!-- Center: Mixing chamber -->
+      <section class="panel center-panel" aria-label="Mixing chamber">
+        <div id="chamber">
+          <div id="chips"></div>
+        </div>
+        <div class="chamber-controls">
+          <button id="combine-btn" type="button" disabled>Combine</button>
+          <button id="clear-btn" type="button" hidden>clear</button>
+        </div>
+      </section>
+
+      <!-- Right: Discovery log -->
+      <section class="panel" aria-label="Discovery log">
+        <div class="panel-head">
+          <h2>Discovery Log</h2>
+        </div>
+        <div class="panel-body">
+          <div id="log">
+            <p id="log-empty" class="empty-note">
+              Your lab notebook is blank. Drop two or more tiles into the chamber and hit Combine.
+              Hint: stars start with hydrogen.
+            </p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Achievement toasts -->
+  <div id="toasts" aria-live="polite"></div>
+
+  <!-- Achievements dialog -->
+  <dialog id="achievements-dialog">
+    <div class="dialog-head">
+      <h2>Achievements</h2>
+      <button id="close-dialog" type="button" aria-label="Close">×</button>
+    </div>
+    <div id="achievements-list"></div>
+  </dialog>
+
+  <script src="data.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
