@@ -1,23 +1,42 @@
 /* ============================================================
-   ELEMENT FUSION — GAME ENGINE
+   ELEMENT FUSION — GAME ENGINE v2: LIVE REACTIVE CANVAS
    ============================================================
    Reads everything from window.GAME_DATA (data.js).
    No chemistry is hardcoded here — only mechanics.
 
-   Architecture, briefly:
-   - state            : single source of truth
-   - recipe matching  : multiset → sorted-key lookup (O(1))
-   - fallback cascade : exact hypothetical → heuristic rules → defaults
-   - achievements     : declarative tests evaluated after every event
-   - persistence      : localStorage, wrapped so the game still runs
-                        in sandboxed iframes where storage throws
+   What changed from v1 (manual Combine button):
+   - The mixing area is now a free-form canvas. Items become
+     positioned "nodes" you drag around with the pointer.
+   - STATE vs SOLUTION: nodes sitting in the same beaker do NOT
+     react. A reaction is triggered only by literal contact —
+     dragging one node into another (or a new node spawning in
+     contact during a cascade).
+   - Evaluation pipeline, on every release/spawn-in-contact:
+       contact set → subset recipe match (largest first)
+       → hit: snap-coalesce animation, ledger update, then
+         cascade-check the new node against its neighbors
+       → miss: educational hypothesis card (throttled so the
+         same pair doesn't spam the log)
+   - Magnet tug: while dragging, if a nearby node would complete
+     a valid recipe with what you're holding, the held node is
+     visually pulled a few px toward it and the partner glows.
+   - Discovery log keeps only the last 10 cards + can be cleared.
    ============================================================ */
 
 (() => {
   'use strict';
 
   const DATA = window.GAME_DATA;
-  const MAX_CHIPS = 8;
+
+  /* ---------- tunables ---------- */
+  const NODE_SIZE     = 66;   // px, rendered node diameter
+  const REACT_RADIUS  = 70;   // px center-to-center = "literal contact"
+  const MAGNET_RADIUS = 150;  // px, how far the tug can feel a partner
+  const MAGNET_PULL   = 20;   // px, max visual tug toward a partner
+  const MAX_NODES     = 14;   // keep the canvas readable
+  const MAX_LOG       = 10;   // discovery log cap (user request)
+  const CASCADE_DELAY = 480;  // ms between chain-reaction steps
+  const MISS_COOLDOWN = 6000; // ms before the same miss pair logs again
 
   /* ---------- safe storage (works locally; degrades gracefully) ---------- */
   const store = {
@@ -30,17 +49,28 @@
   /* ---------- indexes built once from data ---------- */
   const itemById = new Map(DATA.ITEMS.map(i => [i.id, i]));
   const comboKey = ids => [...ids].sort().join('+');
-  const recipeByKey = new Map(DATA.RECIPES.map(r => [comboKey(r.inputs), r]));
+  // Two reaction regimes, keyed by canvas zone: fusion recipes only
+  // fire inside the Stellar Core; bench chemistry only outside it.
+  // The same key can exist in both (H+H → He in the core, H₂ on the
+  // bench) — that's the point, not a collision.
+  const recipesOf = mode => DATA.RECIPES.filter(r => (r.mode || 'chem') === mode);
+  const recipeMaps = {
+    fusion: new Map(recipesOf('fusion').map(r => [comboKey(r.inputs), r])),
+    chem:   new Map(recipesOf('chem').map(r => [comboKey(r.inputs), r])),
+  };
+  const recipeLists = { fusion: recipesOf('fusion'), chem: recipesOf('chem') };
   const hypoByKey = new Map(DATA.HYPOTHETICALS.map(h => [comboKey(h.inputs), h]));
   const TOTAL_DISCOVERABLE = DATA.ITEMS.filter(i => !i.starter).length;
 
   /* ---------- state ---------- */
   const state = {
     discovered: new Set(DATA.ITEMS.filter(i => i.starter).map(i => i.id)),
-    mix: [],                 // array of item ids currently in the chamber
+    nodes: [],               // [{ nid, itemId, x, y, el }] — canvas workspace
+    nextNid: 1,
     fails: 0,
     achievements: new Set(),
     defaultFallbackIdx: 0,
+    lastMiss: { key: null, at: 0 },
   };
 
   function save() {
@@ -70,6 +100,7 @@
     if (text != null) node.textContent = text;
     return node;
   };
+  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
   /* ---------- inventory panel ---------- */
   function renderInventory() {
@@ -110,7 +141,7 @@
     tile.type = 'button';
     tile.draggable = true;
     tile.dataset.id = item.id;
-    tile.setAttribute('aria-label', `Add ${item.name} to the mixing chamber`);
+    tile.setAttribute('aria-label', `Add ${item.name} to the canvas`);
 
     if (item.kind === 'element') {
       tile.appendChild(el('span', 'tile-num', item.num));
@@ -122,7 +153,9 @@
       tile.appendChild(el('span', 'tile-name', item.name));
     }
 
-    tile.addEventListener('click', () => addToMix(item.id));
+    // Click = drop it onto a free spot (no reaction: nothing was
+    // dragged INTO anything — state vs solution).
+    tile.addEventListener('click', () => spawnNearCenter(item.id));
     tile.addEventListener('dragstart', e => {
       e.dataTransfer.setData('text/plain', item.id);
       e.dataTransfer.effectAllowed = 'copy';
@@ -132,91 +165,343 @@
     return tile;
   }
 
-  /* ---------- mixing chamber ---------- */
-  function addToMix(id) {
-    if (state.mix.length >= MAX_CHIPS) {
-      flashChamber('full');
+  /* ============================================================
+     CANVAS: nodes, dragging, magnet tug
+     ============================================================ */
+  const canvas = () => $('#canvas');
+
+  function canvasRect() { return canvas().getBoundingClientRect(); }
+
+  /* ---------- the Stellar Core: where fusion lives ---------- */
+  // Geometry is computed in JS and pushed to the div, so the visual
+  // circle and the logic circle are the same numbers by construction.
+  function coreGeom() {
+    const r = canvasRect();
+    return {
+      cx: r.width * 0.80,
+      cy: r.height * 0.20,
+      radius: Math.min(Math.max(Math.min(r.width, r.height) * 0.24, 72), 118),
+    };
+  }
+
+  function zoneAt(x, y) {
+    const g = coreGeom();
+    return Math.hypot(x - g.cx, y - g.cy) <= g.radius ? 'fusion' : 'chem';
+  }
+  const zoneOf = node => zoneAt(node.x, node.y);
+
+  function renderCore() {
+    const g = coreGeom();
+    const core = $('#star-core');
+    core.style.width = core.style.height = `${g.radius * 2}px`;
+    core.style.transform = `translate(${g.cx - g.radius}px, ${g.cy - g.radius}px)`;
+  }
+
+  function clampToCanvas(x, y) {
+    const r = canvasRect();
+    const half = NODE_SIZE / 2 + 4;
+    return {
+      x: Math.min(Math.max(x, half), r.width - half),
+      y: Math.min(Math.max(y, half), r.height - half),
+    };
+  }
+
+  function updateHint() {
+    $('#canvas-hint').hidden = state.nodes.length > 0;
+    $('#clear-canvas-btn').hidden = state.nodes.length === 0;
+  }
+
+  function positionNode(n, dx = 0, dy = 0) {
+    n.el.style.transform =
+      `translate(${n.x + dx - NODE_SIZE / 2}px, ${n.y + dy - NODE_SIZE / 2}px)`;
+  }
+
+  function spawnNode(itemId, x, y, animate = true) {
+    if (state.nodes.length >= MAX_NODES) {
+      canvas().classList.remove('canvas-full');
+      void canvas().offsetWidth;
+      canvas().classList.add('canvas-full');
+      return null;
+    }
+    const item = itemById.get(itemId);
+    const p = clampToCanvas(x, y);
+    const node = { nid: state.nextNid++, itemId, x: p.x, y: p.y, el: null };
+
+    const div = el('div', `node cat-${item.category}${animate ? ' spawn' : ''}`);
+    div.appendChild(el('span', 'node-label', item.symbol || item.formula));
+    div.appendChild(el('span', 'node-name', item.name));
+    div.title = `${item.name} — drag into another node to react · double-click to remove`;
+    node.el = div;
+
+    div.addEventListener('dblclick', () => removeNode(node));
+    div.addEventListener('pointerdown', e => startDrag(node, e));
+
+    canvas().appendChild(div);
+    positionNode(node);
+    state.nodes.push(node);
+    updateHint();
+    return node;
+  }
+
+  function spawnNearCenter(itemId) {
+    const r = canvasRect();
+    // scatter so repeated taps don't stack into accidental contact
+    const angle = Math.random() * Math.PI * 2;
+    const radius = 40 + Math.random() * Math.min(r.width, r.height) * 0.22;
+    spawnNode(itemId,
+      r.width / 2 + Math.cos(angle) * radius,
+      r.height / 2 + Math.sin(angle) * radius);
+  }
+
+  function removeNode(node) {
+    const i = state.nodes.indexOf(node);
+    if (i !== -1) state.nodes.splice(i, 1);
+    node.el.remove();
+    updateHint();
+  }
+
+  function clearCanvas() {
+    state.nodes.forEach(n => n.el.remove());
+    state.nodes = [];
+    updateHint();
+  }
+
+  /* ---------- in-canvas pointer dragging ---------- */
+  function startDrag(node, e) {
+    e.preventDefault();
+    node.el.setPointerCapture(e.pointerId);
+    node.el.classList.add('dragging-node');
+
+    const r = canvasRect();
+    const grabDx = node.x - (e.clientX - r.left);
+    const grabDy = node.y - (e.clientY - r.top);
+    let pull = { x: 0, y: 0 };
+    let magnetPartner = null;
+
+    const onMove = ev => {
+      const rect = canvasRect();
+      const p = clampToCanvas(ev.clientX - rect.left + grabDx, ev.clientY - rect.top + grabDy);
+      node.x = p.x;
+      node.y = p.y;
+
+      // --- magnet tug: feel for a partner that completes a recipe ---
+      const found = findRecipePartner(node);
+      if (magnetPartner && magnetPartner !== found.partner) {
+        magnetPartner.el.classList.remove('magnet');
+      }
+      magnetPartner = found.partner;
+      if (magnetPartner) {
+        magnetPartner.el.classList.add('magnet');
+        const d = dist(node, magnetPartner);
+        // pull grows as you get closer; "slight", never a yank
+        const strength = MAGNET_PULL * (1 - d / MAGNET_RADIUS);
+        const ux = (magnetPartner.x - node.x) / (d || 1);
+        const uy = (magnetPartner.y - node.y) / (d || 1);
+        pull = { x: ux * strength, y: uy * strength };
+      } else {
+        pull = { x: 0, y: 0 };
+      }
+      positionNode(node, pull.x, pull.y);
+    };
+
+    const onUp = () => {
+      node.el.classList.remove('dragging-node');
+      if (magnetPartner) magnetPartner.el.classList.remove('magnet');
+      node.el.removeEventListener('pointermove', onMove);
+      node.el.removeEventListener('pointerup', onUp);
+      node.el.removeEventListener('pointercancel', onUp);
+
+      // commit the tug: if the magnet visually closed the gap,
+      // the contact is real
+      const committed = clampToCanvas(node.x + pull.x, node.y + pull.y);
+      node.x = committed.x;
+      node.y = committed.y;
+      positionNode(node);
+
+      evaluateContact(node, /* playerAction */ true);
+    };
+
+    node.el.addEventListener('pointermove', onMove);
+    node.el.addEventListener('pointerup', onUp);
+    node.el.addEventListener('pointercancel', onUp);
+  }
+
+  /* ---------- contact + recipe resolution ---------- */
+  function touching(node) {
+    return state.nodes.filter(n => n !== node && dist(n, node) <= REACT_RADIUS);
+  }
+
+  // All non-empty subsets, largest first, so 3 He → C wins over
+  // any smaller partial match. Contact sets are tiny (≤6), so
+  // 2^n enumeration is nothing.
+  function subsetsDesc(arr) {
+    const out = [];
+    const n = arr.length;
+    for (let mask = 1; mask < (1 << n); mask++) {
+      const sub = [];
+      for (let b = 0; b < n; b++) if (mask & (1 << b)) sub.push(arr[b]);
+      out.push(sub);
+    }
+    return out.sort((a, b) => b.length - a.length);
+  }
+
+  function findRecipeIn(node, neighbors) {
+    const zone = zoneOf(node);
+    for (const sub of subsetsDesc(neighbors.slice(0, 6))) {
+      const group = [node, ...sub];
+      const recipe = recipeMaps[zone].get(comboKey(group.map(n => n.itemId)));
+      if (recipe) return { recipe, group };
+    }
+    return null;
+  }
+
+  // Is this contact set a strict sub-multiset of any recipe in its
+  // zone? If so, the player is mid-staging, not failing — return how
+  // many ingredients the closest-to-complete recipe still needs.
+  function partialOf(ids, zone) {
+    let bestMissing = Infinity;
+    for (const r of recipeLists[zone]) {
+      if (r.inputs.length <= ids.length) continue;
+      const pool = [...r.inputs];
+      const fits = ids.every(id => {
+        const i = pool.indexOf(id);
+        if (i === -1) return false;
+        pool.splice(i, 1);
+        return true;
+      });
+      if (fits) bestMissing = Math.min(bestMissing, pool.length);
+    }
+    return bestMissing === Infinity ? 0 : bestMissing;
+  }
+
+  // Magnet: nearest same-zone node within MAGNET_RADIUS that would
+  // complete a recipe with the held node (pairwise, or with that
+  // node's own contact cluster — so a third He feels the He pair).
+  function findRecipePartner(dragNode) {
+    const zone = zoneOf(dragNode);
+    let best = null, bestD = Infinity;
+    for (const cand of state.nodes) {
+      if (cand === dragNode || zoneOf(cand) !== zone) continue;
+      const d = dist(dragNode, cand);
+      if (d > MAGNET_RADIUS || d >= bestD) continue;
+
+      const pair = recipeMaps[zone].has(comboKey([dragNode.itemId, cand.itemId]));
+      let cluster = false;
+      if (!pair) {
+        const around = touching(cand).filter(n => n !== dragNode);
+        cluster = !!findRecipeIn(dragNode, [cand, ...around]);
+      }
+      if (pair || cluster) { best = cand; bestD = d; }
+    }
+    return { partner: best };
+  }
+
+  /* The evaluation pipeline. playerAction=true → a miss produces
+     an educational card; cascades stay silent on misses so the
+     log only reflects deliberate chemistry. */
+  function evaluateContact(node, playerAction) {
+    const neighbors = touching(node);
+    if (neighbors.length === 0) return; // free placement, no reaction
+
+    const hit = findRecipeIn(node, neighbors);
+    if (hit) {
+      react(hit.group, hit.recipe);
+    } else if (playerAction) {
+      missContact(node, neighbors);
+    }
+  }
+
+  function react(group, recipe) {
+    // centroid = where the new compound coalesces
+    const cx = group.reduce((s, n) => s + n.x, 0) / group.length;
+    const cy = group.reduce((s, n) => s + n.y, 0) / group.length;
+
+    // snap animation: everyone slides to the centroid and shrinks
+    group.forEach(n => {
+      n.x = cx; n.y = cy;
+      n.el.classList.add('consuming');
+      positionNode(n);
+    });
+
+    // reaction ring at the point of fusion
+    const ring = el('div', 'react-ring');
+    ring.style.left = `${cx}px`;
+    ring.style.top = `${cy}px`;
+    canvas().appendChild(ring);
+    setTimeout(() => ring.remove(), 700);
+
+    setTimeout(() => {
+      group.forEach(removeNode);
+      const out = spawnNode(recipe.output, cx, cy);
+
+      // ledger + achievements update in real time
+      const item = itemById.get(recipe.output);
+      const isNew = !state.discovered.has(item.id);
+      if (isNew) state.discovered.add(item.id);
+      logDiscovery(recipe, item, isNew);
+      checkAchievements();
+      save();
+      renderInventory();
+
+      // cascade: the newborn compound may itself be in contact
+      // with ambient nodes (e.g. fresh NaCl born next to H₂O)
+      if (out) {
+        setTimeout(() => evaluateContact(out, /* playerAction */ false), CASCADE_DELAY);
+      }
+    }, 230);
+  }
+
+  function missContact(node, neighbors) {
+    // nearest neighbor = the thing the player actually pushed into
+    const nearest = neighbors.reduce((a, b) => (dist(node, a) <= dist(node, b) ? a : b));
+    const zone = zoneOf(node);
+    const otherZone = zone === 'fusion' ? 'chem' : 'fusion';
+    const clusterIds = [node, ...neighbors].map(n => n.itemId);
+    const clusterKey = comboKey(clusterIds);
+    const pairKey = comboKey([node.itemId, nearest.itemId]);
+
+    // 1) Would this react in the OTHER zone? Teach the mechanic.
+    const elsewhere = recipeMaps[otherZone].get(clusterKey) || recipeMaps[otherZone].get(pairKey);
+    if (elsewhere) {
+      shakePair(node, nearest);
+      if (throttledMiss(pairKey)) return;
+      const out = itemById.get(elsewhere.output);
+      logHypothesis(
+        zone === 'fusion'
+          ? `These bond chemically — not in a star`
+          : `These fuse — but only in the Stellar Core`,
+        zone === 'fusion'
+          ? `Inside the core it's ~15 million K: molecules can't survive, only nuclei colliding. Drag these out of the core and they'll react chemically (→ ${out.name}).`
+          : `At bench conditions, nuclei never get close enough to fuse — their positive charges repel. Drag this pair into the glowing Stellar Core, where heat and pressure overcome the Coulomb barrier (→ ${out.name}).`
+      );
+      checkAchievements();
+      save();
       return;
     }
-    state.mix.push(id);
-    renderMix();
-  }
 
-  function removeFromMix(index) {
-    state.mix.splice(index, 1);
-    renderMix();
-  }
-
-  function clearMix() {
-    state.mix = [];
-    renderMix();
-  }
-
-  function renderMix() {
-    const zone = $('#chips');
-    zone.replaceChildren();
-    if (state.mix.length === 0) {
-      const hint = el('p', 'chamber-hint');
-      hint.innerHTML = 'Drag elements here<br><span>or tap them in the inventory</span>';
-      zone.appendChild(hint);
-    } else {
-      state.mix.forEach((id, idx) => {
-        const item = itemById.get(id);
-        const chip = el('button', `chip cat-${item.category}`);
-        chip.type = 'button';
-        chip.setAttribute('aria-label', `Remove ${item.name} from the chamber`);
-        chip.appendChild(el('span', 'chip-label', item.symbol || item.formula));
-        chip.appendChild(el('span', 'chip-x', '×'));
-        chip.title = item.name;
-        chip.addEventListener('click', () => removeFromMix(idx));
-        zone.appendChild(chip);
+    // 2) Strict subset of a bigger recipe? That's staging, not failure.
+    const missing = partialOf(clusterIds, zone);
+    if (missing > 0) {
+      [node, ...neighbors].forEach(n => {
+        n.el.classList.remove('staged');
+        void n.el.offsetWidth;
+        n.el.classList.add('staged');
       });
+      stagePill(node, missing);
+      return; // no fail count, no log card — something is brewing
     }
-    $('#combine-btn').disabled = state.mix.length < 2;
-    $('#clear-btn').hidden = state.mix.length === 0;
-  }
 
-  function flashChamber(kind) {
-    const chamber = $('#chamber');
-    chamber.classList.remove('flash-success', 'flash-miss', 'flash-full');
-    void chamber.offsetWidth; // restart animation
-    chamber.classList.add(`flash-${kind}`);
-  }
+    // 3) Genuine miss → educational card (throttled)
+    shakePair(node, nearest);
+    if (throttledMiss(pairKey)) return;
 
-  /* ---------- combine: the core loop ---------- */
-  function combine() {
-    if (state.mix.length < 2) return;
-    const key = comboKey(state.mix);
-
-    const recipe = recipeByKey.get(key);
-    if (recipe) {
-      handleSuccess(recipe);
-    } else {
-      handleMiss(key);
-    }
-    clearMix();
-    save();
-    renderInventory();
-  }
-
-  function handleSuccess(recipe) {
-    const item = itemById.get(recipe.output);
-    const isNew = !state.discovered.has(item.id);
-    if (isNew) state.discovered.add(item.id);
-
-    logDiscovery(recipe, item, isNew);
-    flashChamber('success');
-    checkAchievements();
-  }
-
-  function handleMiss(key) {
     state.fails += 1;
 
-    const hypo = hypoByKey.get(key);
+    const hypo = hypoByKey.get(clusterKey) || hypoByKey.get(pairKey);
     if (hypo) {
       logHypothesis(hypo.title, hypo.text);
     } else {
-      const items = state.mix.map(id => itemById.get(id));
+      const items = [node, nearest].map(n => itemById.get(n.itemId));
       const rule = DATA.FALLBACK_RULES.find(r => r.when(items));
       if (rule) {
         logHypothesis(rule.title, rule.text);
@@ -226,13 +511,40 @@
         logHypothesis(fb.title, fb.text);
       }
     }
-    flashChamber('miss');
     checkAchievements();
+    save();
+  }
+
+  function shakePair(a, b) {
+    [a, b].forEach(n => {
+      n.el.classList.remove('shake');
+      void n.el.offsetWidth;
+      n.el.classList.add('shake');
+    });
+  }
+
+  function throttledMiss(pairKey) {
+    const now = Date.now();
+    if (state.lastMiss.key === pairKey && now - state.lastMiss.at < MISS_COOLDOWN) return true;
+    state.lastMiss = { key: pairKey, at: now };
+    return false;
+  }
+
+  // floating "⚗ n more…" pill above a staged cluster
+  function stagePill(node, missing) {
+    canvas().querySelectorAll('.stage-pill').forEach(p => p.remove());
+    const pill = el('div', 'stage-pill',
+      `⚗ partial mix — ${missing} more ingredient${missing > 1 ? 's' : ''} could complete a reaction`);
+    pill.style.left = `${node.x}px`;
+    pill.style.top = `${node.y - NODE_SIZE / 2 - 14}px`;
+    canvas().appendChild(pill);
+    setTimeout(() => pill.classList.add('fade'), 1900);
+    setTimeout(() => pill.remove(), 2400);
   }
 
   /* ---------- discovery log ---------- */
   function reactionEquation(recipe) {
-    // Render "H + H + O → H₂O" using symbols/formulas
+    // Render "2 H + O → H₂O" using symbols/formulas
     const counts = new Map();
     recipe.inputs.forEach(id => counts.set(id, (counts.get(id) || 0) + 1));
     const left = [...counts.entries()].map(([id, n]) => {
@@ -264,6 +576,13 @@
     item.tags.forEach(t => tags.appendChild(el('span', 'tag', t)));
     card.appendChild(tags);
 
+    // your-move tooltip: flag compounds that are themselves ingredients
+    const further = DATA.RECIPES.filter(r => r.inputs.includes(item.id)).length;
+    if (further > 0) {
+      card.appendChild(el('p', 'log-reactive',
+        `⚗ Reactive — ${item.name} is an ingredient in ${further} more recipe${further > 1 ? 's' : ''}. Try dragging it into things.`));
+    }
+
     prependLog(card);
   }
 
@@ -287,11 +606,18 @@
   function prependLog(card) {
     const log = $('#log');
     $('#log-empty').hidden = true;
+    $('#clear-log-btn').hidden = false;
     log.prepend(card);
-    // keep the DOM light (never remove the empty-state node — Reset needs it)
-    while (log.children.length > 60 && log.lastChild.id !== 'log-empty') {
-      log.removeChild(log.lastChild);
-    }
+    // last 10 only (never remove the empty-state node — Reset needs it)
+    const cards = [...log.children].filter(c => c.id !== 'log-empty');
+    cards.slice(MAX_LOG).forEach(c => c.remove());
+  }
+
+  function clearLog() {
+    const log = $('#log');
+    [...log.children].forEach(c => { if (c.id !== 'log-empty') c.remove(); });
+    $('#log-empty').hidden = false;
+    $('#clear-log-btn').hidden = true;
   }
 
   /* ---------- achievements ---------- */
@@ -360,24 +686,38 @@
   function init() {
     load();
 
-    // drop zone
-    const chamber = $('#chamber');
-    chamber.addEventListener('dragover', e => {
+    // inventory → canvas drop (a drop ONTO a node counts as
+    // dragging them together, so it evaluates immediately)
+    const cv = canvas();
+    cv.addEventListener('dragover', e => {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'copy';
-      chamber.classList.add('drag-over');
+      cv.classList.add('drag-over');
     });
-    chamber.addEventListener('dragleave', () => chamber.classList.remove('drag-over'));
-    chamber.addEventListener('drop', e => {
+    cv.addEventListener('dragleave', () => cv.classList.remove('drag-over'));
+    cv.addEventListener('drop', e => {
       e.preventDefault();
-      chamber.classList.remove('drag-over');
+      cv.classList.remove('drag-over');
       const id = e.dataTransfer.getData('text/plain');
-      if (itemById.has(id) && state.discovered.has(id)) addToMix(id);
+      if (!itemById.has(id) || !state.discovered.has(id)) return;
+      const r = canvasRect();
+      const node = spawnNode(id, e.clientX - r.left, e.clientY - r.top);
+      if (node) evaluateContact(node, /* playerAction */ true);
     });
 
-    $('#combine-btn').addEventListener('click', combine);
-    $('#clear-btn').addEventListener('click', clearMix);
+    $('#clear-canvas-btn').addEventListener('click', clearCanvas);
+    $('#clear-log-btn').addEventListener('click', clearLog);
     $('#search').addEventListener('input', renderInventory);
+
+    // keep nodes inside the canvas (and the core sized) on resize
+    window.addEventListener('resize', () => {
+      renderCore();
+      state.nodes.forEach(n => {
+        const p = clampToCanvas(n.x, n.y);
+        n.x = p.x; n.y = p.y;
+        positionNode(n);
+      });
+    });
 
     // achievements popover
     const dialog = $('#achievements-dialog');
@@ -397,15 +737,15 @@
       state.discovered = new Set(DATA.ITEMS.filter(i => i.starter).map(i => i.id));
       state.fails = 0;
       state.achievements.clear();
-      state.mix = [];
-      $('#log').replaceChildren($('#log-empty'));
-      $('#log-empty').hidden = false;
-      renderMix();
+      state.lastMiss = { key: null, at: 0 };
+      clearCanvas();
+      clearLog();
       renderInventory();
       checkAchievements();
     });
 
-    renderMix();
+    updateHint();
+    renderCore();
     renderInventory();
     checkAchievements();
   }

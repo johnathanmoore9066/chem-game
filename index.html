@@ -51,14 +51,20 @@
         </div>
       </section>
 
-      <!-- Center: Mixing chamber -->
-      <section class="panel center-panel" aria-label="Mixing chamber">
-        <div id="chamber">
-          <div id="chips"></div>
+      <!-- Center: Live reaction canvas -->
+      <section class="panel center-panel" aria-label="Reaction canvas">
+        <div class="panel-head canvas-head">
+          <h2>Reaction Canvas</h2>
+          <button id="clear-canvas-btn" class="ghost-btn" type="button" hidden>Clear canvas</button>
         </div>
-        <div class="chamber-controls">
-          <button id="combine-btn" type="button" disabled>Combine</button>
-          <button id="clear-btn" type="button" hidden>clear</button>
+        <div id="canvas">
+          <div id="star-core" aria-hidden="true"><span>Stellar Core<br><em>fusion only</em></span></div>
+          <p id="canvas-hint" class="canvas-hint">
+            Drag elements anywhere on the canvas.<br>
+            <span>Nothing reacts until it touches — drag one node <em>into</em> another.<br>
+            Chemistry happens on the bench; nuclear fusion only inside the <em>Stellar Core</em>.<br>
+            Double-click a node to remove it.</span>
+          </p>
         </div>
       </section>
 
@@ -66,12 +72,13 @@
       <section class="panel" aria-label="Discovery log">
         <div class="panel-head">
           <h2>Discovery Log</h2>
+          <button id="clear-log-btn" class="ghost-btn" type="button" hidden>Clear</button>
         </div>
         <div class="panel-body">
           <div id="log">
             <p id="log-empty" class="empty-note">
-              Your lab notebook is blank. Drop two or more tiles into the chamber and hit Combine.
-              Hint: stars start with hydrogen.
+              Your lab notebook is blank. Drag two tiles onto the canvas, then push one into the other.
+              Hint: stars start with hydrogen. (The log keeps your last 10 entries.)
             </p>
           </div>
         </div>
