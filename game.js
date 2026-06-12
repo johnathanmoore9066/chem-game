@@ -70,6 +70,7 @@
     fails: 0,
     achievements: new Set(),
     defaultFallbackIdx: 0,
+    coreFallbackIdx: 0,
     lastMiss: { key: null, at: 0 },
   };
 
@@ -502,9 +503,16 @@
       logHypothesis(hypo.title, hypo.text);
     } else {
       const items = [node, nearest].map(n => itemById.get(n.itemId));
-      const rule = DATA.FALLBACK_RULES.find(r => r.when(items));
+      // In the core, chemistry explanations (electron shells, bonds)
+      // are the wrong physics — route to plasma-flavored education.
+      const rules = zone === 'fusion' ? DATA.CORE_RULES : DATA.FALLBACK_RULES;
+      const rule = rules.find(r => r.when(items));
       if (rule) {
         logHypothesis(rule.title, rule.text);
+      } else if (zone === 'fusion') {
+        const fb = DATA.CORE_FALLBACKS[state.coreFallbackIdx % DATA.CORE_FALLBACKS.length];
+        state.coreFallbackIdx += 1;
+        logHypothesis(fb.title, fb.text);
       } else {
         const fb = DATA.DEFAULT_FALLBACKS[state.defaultFallbackIdx % DATA.DEFAULT_FALLBACKS.length];
         state.defaultFallbackIdx += 1;
@@ -714,7 +722,9 @@
   }
 
   function coffeeToAnchor(animate) {
-    const a = $('#coffee-anchor').getBoundingClientRect();
+    const anchor = $('#coffee-anchor');
+    if (!anchor) { coffeeToDock(false); return; } // markup moved? degrade gracefully
+    const a = anchor.getBoundingClientRect();
     const c = coffee();
     c.classList.remove('docked');
     if (animate && !reducedMotion()) {

@@ -113,11 +113,14 @@
     </div>
   </div>
 
-  <!-- The coffee button lives outside the overlay so it can hold its
-       screen position while the landing fades away beneath it. -->
-  <!-- TODO before launch: replace the href with your real donation link
-       (e.g. https://ko-fi.com/yourname or https://buymeacoffee.com/yourname) -->
-  <a id="coffee-btn" class="coffee-btn" href="https://ko-fi.com/johnathanmoore9066" target="_blank" rel="noopener noreferrer">☕ Buy me a coffee</a>
+  <!-- The coffee button lives OUTSIDE the overlay, on purpose:
+       1) it must survive the landing's fade (a child would fade with it)
+       2) the landing's backdrop-filter hijacks position:fixed children.
+       JS lays it over the #coffee-anchor placeholder in the sentence
+       above, then glides it to the corner when the landing dismisses.
+       To change the link or label, edit it RIGHT HERE — don't move it. -->
+  <a id="coffee-btn" class="coffee-btn" href="https://ko-fi.com/johnathanmoore9066"
+     target="_blank" rel="noopener noreferrer" hidden>☕ buy me a coffee</a>
 
   <!-- Achievement toasts -->
   <div id="toasts" aria-live="polite"></div>

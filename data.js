@@ -466,6 +466,14 @@ window.GAME_DATA = (() => {
       note:'The alpha ladder continues: neon captures a helium nucleus to form magnesium, deep in a dying star\'s onion-layered core.' },
     { inputs:['mg','he'], mode:'fusion', output:'si',
       note:'Alpha capture once more: magnesium + helium → silicon. Silicon burning is the final fusion stage before iron — after which the star collapses.' },
+    { inputs:['o','he'], mode:'fusion', output:'ne',
+      note:'Alpha capture: oxygen-16 + helium-4 → neon-20. The ladder continues — each rung is a nucleus swallowing one more alpha particle.' },
+    { inputs:['o','o'], mode:'fusion', output:'si',
+      note:'Oxygen burning: ¹⁶O + ¹⁶O → ²⁸Si + α (mostly). Ignites around 2 billion K, late in a massive star\'s life. Note that "noble" neon and argon form this way too — electron-shell nobility means nothing to a bare nucleus.' },
+    { inputs:['si','he'], mode:'fusion', output:'s',
+      note:'Alpha capture: silicon-28 + helium-4 → sulfur-32. In real stars this happens during silicon burning, a frantic final week of rearrangement before core collapse.' },
+    { inputs:['si','si'], mode:'fusion', output:'fe',
+      note:'The end of the line. Real "silicon burning" isn\'t literal Si+Si — it\'s photodisintegration reshuffling nuclei up to iron-peak elements — but the destination is honest: ⁵⁶Fe has the highest binding energy per nucleon. Fusing past iron COSTS energy. This is why stars die.' },
     { inputs:['s','he'], mode:'fusion', output:'ar',
       note:'Alpha process: sulfur-32 captures a helium nucleus to form argon-36. The "lazy" gas in your window panes was forged in a supernova\'s last days.' },
 
@@ -686,6 +694,38 @@ window.GAME_DATA = (() => {
   ];
 
   /* ----------------------------------------------------------
+     CORE_RULES / CORE_FALLBACKS — miss education INSIDE the
+     Stellar Core. Chemistry explanations (electron shells, bonds,
+     acids/bases) are the wrong physics at 10⁸ K — in plasma there
+     are no electron shells, only bare nuclei. Same shape as
+     FALLBACK_RULES: first matching rule wins; otherwise rotate
+     through CORE_FALLBACKS.
+  ---------------------------------------------------------- */
+  const CORE_RULES = [
+    {
+      id:'iron-wall',
+      when: items => items.some(i => i.id === 'fe'),
+      title:'Iron: where fusion stops paying',
+      text:'Iron-56 sits at the peak of nuclear binding energy — fusing anything INTO iron, or iron into anything, consumes energy instead of releasing it. When a massive star\'s core turns to iron, the furnace shuts off mid-burn and the star collapses in under a second. Everything heavier than iron in your body was made in that collapse, not before it.'
+    },
+    {
+      id:'noble-means-nothing-here',
+      when: items => items.some(i => i.tags.includes('noble-gas')),
+      title:'Nobility means nothing in plasma',
+      text:'A noble gas\'s famous inertness is an ELECTRON property — a full outer shell with no vacancy. But at stellar core temperatures, atoms are fully ionized: the electrons are long gone and only bare nuclei remain. Neon fuses in massive stars (neon burning, ~1.5 billion K) just fine. What stops THIS collision isn\'t nobility — it\'s that it isn\'t one of the energy-favorable channels stars actually use. Try alpha capture: add helium.'
+    },
+  ];
+
+  const CORE_FALLBACKS = [
+    { title:'The Coulomb barrier wins this round',
+      text:'Two nuclei are both positively charged and repel ferociously — fusion only happens when temperature (plus a generous assist from quantum tunneling) slams them close enough for the strong force to grab. Stars manage it only for specific, energy-favorable pairings. This isn\'t one of the channels they use. The reliable rungs: add helium — the alpha ladder.' },
+    { title:'Stars burn in a strict order',
+      text:'Stellar fusion runs in stages — hydrogen, then helium, carbon, neon, oxygen, silicon — each igniting only when the core contracts and heats enough for the next, harder fuel. Heavier pairings than the current stage simply don\'t go. This combination skips the queue, and the star\'s bouncer is temperature.' },
+    { title:'Not a channel the universe uses',
+      text:'In principle many nuclei CAN fuse; in practice stars take the cheap routes — mostly capturing helium-4 (the alpha process) because it\'s abundant and the energy bookkeeping works. Fun fact: stars also burn hydrogen using carbon, nitrogen, and oxygen as a catalytic loop (the CNO cycle) — the catalysts come out untouched, like a good enzyme.' },
+  ];
+
+  /* ----------------------------------------------------------
      ACHIEVEMENTS — data-driven milestone definitions
      test types:
        discover      { id }                — unlock a specific item
@@ -733,5 +773,5 @@ window.GAME_DATA = (() => {
       test:{ type:'failCount', count:10 } },
   ];
 
-  return { ITEMS, RECIPES, HYPOTHETICALS, FALLBACK_RULES, DEFAULT_FALLBACKS, ACHIEVEMENTS };
+  return { ITEMS, RECIPES, HYPOTHETICALS, FALLBACK_RULES, DEFAULT_FALLBACKS, CORE_RULES, CORE_FALLBACKS, ACHIEVEMENTS };
 })();
