@@ -56,6 +56,10 @@ body {
   line-height: 1.5;
 }
 
+/* hidden must MEAN hidden: author display rules (flex, inline-flex)
+   otherwise silently defeat the attribute's UA-stylesheet display:none */
+[hidden] { display: none !important; }
+
 /* ---------- layout ---------- */
 .app {
   display: grid;

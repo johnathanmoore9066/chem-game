@@ -488,8 +488,15 @@
         void n.el.offsetWidth;
         n.el.classList.add('staged');
       });
-      stagePill(node, missing);
-      return; // no fail count, no log card — something is brewing
+      // a curated lesson for this exact pair (e.g. He+He → the
+      // beryllium-8 story) beats the generic "needs more" pill
+      const stagingHypo = hypoByKey.get(clusterKey) || hypoByKey.get(pairKey);
+      if (stagingHypo && !throttledMiss(pairKey)) {
+        logHypothesis(stagingHypo.title, stagingHypo.text);
+      } else {
+        stagePill(node, missing);
+      }
+      return; // no fail count — something is brewing
     }
 
     // 3) Genuine miss → educational card (throttled)
@@ -792,6 +799,13 @@
         coffeeToDock(false);
       }
     });
+    // webfonts swap in after DOMContentLoaded and reflow the landing
+    // text — re-measure the anchor once they settle
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => {
+        if (!landing().hidden) coffeeToAnchor(false);
+      });
+    }
   }
 
   /* ---------- wiring ---------- */
@@ -846,6 +860,7 @@
     $('#reset-btn').addEventListener('click', () => {
       if (!confirm('Reset all progress? Your discoveries and achievements will be wiped.')) return;
       store.remove(SAVE_KEY);
+      store.remove(LANDING_KEY);
       state.discovered = new Set(DATA.ITEMS.filter(i => i.starter).map(i => i.id));
       state.fails = 0;
       state.achievements.clear();
@@ -854,6 +869,7 @@
       clearLog();
       renderInventory();
       checkAchievements();
+      showLanding(true);
     });
 
     updateHint();

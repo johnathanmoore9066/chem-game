@@ -35,6 +35,40 @@ This is a deliberate design decision, and it's also your invitation.
 
 ---
 
+## Climbing the stellar ladder (a field guide)
+
+The Stellar Core follows real nucleosynthesis, which means it has real
+quirks. The ones every player asks about:
+
+- **Hydrogen pairs up.** H + H in the core → helium. (Real stars do this
+  through the proton–proton chain — deuterium, helium-3, the works — the
+  game compresses it to one collision.)
+- **You cannot grow helium by feeding it hydrogen.** H + He makes
+  lithium-5, which survives for about 10⁻²² seconds — the game will tell
+  you so. This is not a bug; it's the actual reason stars spent a billion
+  years stuck at helium.
+- **Helium climbs by crowding, not by addition.** Drag two He together —
+  they'll glow and tell you something's brewing (beryllium-8, briefly).
+  Drag a **third He into the pair** → carbon. This is the triple-alpha
+  process, and the glow-plus-hint is the game's staging mechanic: partial
+  recipes wait patiently for the rest of their ingredients.
+- **From carbon, ride the alpha ladder.** Keep adding He: C → O → Ne →
+  Mg → Si → S → Ar. One helium per rung, just like the inside of a
+  massive star.
+- **Heavy shortcuts exist.** C + C → Ne (carbon burning), O + O → Si
+  (oxygen burning), Si + Si → Fe. Iron is the end of the line — fusing
+  past it costs energy instead of releasing it, which is why it's also
+  the end of the star.
+- **The tug is a hint.** While dragging, if a nearby node would complete
+  a real reaction with what you're holding, you'll feel a slight pull
+  toward it and the partner glows. The magnet never lies — it only
+  signals valid chemistry.
+
+Same staging trick works on the bench: clusters that partially match a
+bigger recipe glow and wait instead of failing.
+
+---
+
 ## Add your own chemistry
 
 Found a reaction we're missing? A compound your students keep asking about?
@@ -88,7 +122,7 @@ House rules (the chemistry review board is strict but fair):
 
 No GitHub account, no problem. Fill out the template and email it to:
 
-**`contact@elementfusion.org`** 
+**`YOUR-CONTACT-EMAIL@example.com`** <!-- TODO: replace before launch -->
 
 Subject line: `[Element Fusion] New reaction: <compound name>`
 
