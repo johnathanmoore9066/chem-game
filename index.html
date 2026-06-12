@@ -26,6 +26,7 @@
       <button id="trophy-btn" class="topbar-btn" type="button">
         🏆 <span id="trophy-count">0/0</span>
       </button>
+      <button id="about-btn" class="topbar-btn" type="button">About</button>
       <button id="reset-btn" class="topbar-btn" type="button">Reset</button>
     </header>
 
@@ -86,6 +87,38 @@
 
     </main>
   </div>
+
+  <!-- ====== Landing / welcome overlay ====== -->
+  <div id="landing" class="landing" hidden>
+    <div class="landing-card">
+      <p class="landing-kicker">A free teaching tool</p>
+      <h2 class="landing-title">Element <span class="spark">⚛</span> Fusion</h2>
+      <p class="landing-lede">
+        A hands-on chemistry sandbox. Drag elements into each other and discover
+        real compounds through real reactions — stellar fusion in the core,
+        bench chemistry everywhere else. Every discovery comes with the actual
+        chemistry: what you made, why it works, and where it shows up in the world.
+      </p>
+      <ul class="landing-points">
+        <li><strong>Free, for everyone.</strong> Built for classrooms, curious kids, and anyone who ever wondered why water is H₂O.</li>
+        <li><strong>No accounts. No tracking. No data collected.</strong> Your progress saves only to your own browser — nothing ever leaves your device.</li>
+        <li><strong>Open chemistry.</strong> All reactions live in one readable data file — teachers can extend it with their own curriculum.</li>
+      </ul>
+      <button id="start-btn" type="button">Start experimenting</button>
+      <p class="landing-support">
+        This project runs on goodwill. If it helps your classroom,
+        <span id="coffee-anchor" class="coffee-anchor" aria-hidden="true"></span>
+        — entirely optional, always appreciated.
+      </p>
+    </div>
+  </div>
+
+  <!-- The coffee button lives outside the overlay so it can hold its
+       screen position while the landing fades away beneath it. -->
+  <!-- TODO before launch: replace the href with your real donation link
+       (e.g. https://ko-fi.com/yourname or https://buymeacoffee.com/yourname) -->
+  <a id="coffee-btn" class="coffee-btn" href="https://ko-fi.com/YOUR_USERNAME_HERE"
+     target="_blank" rel="noopener noreferrer" hidden>☕ Buy me a coffee</a>
 
   <!-- Achievement toasts -->
   <div id="toasts" aria-live="polite"></div>

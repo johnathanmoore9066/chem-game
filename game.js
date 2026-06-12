@@ -682,6 +682,108 @@
     });
   }
 
+  /* ============================================================
+     LANDING + DONATION BUTTON CHOREOGRAPHY
+     ============================================================
+     The button is one fixed element with two homes:
+     - landing visible → laid over an inline placeholder in the
+       support sentence, full brightness
+     - playing → docked in the bottom-right corner, dimmed
+     Dismissing the landing fades the overlay UNDER the button,
+     then the button glides to its dock. */
+  const LANDING_KEY = 'element-fusion-landing-seen';
+  const DOCK_MARGIN = 16;
+  const reducedMotion = () =>
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const coffee = () => $('#coffee-btn');
+  const landing = () => $('#landing');
+
+  function dockTarget() {
+    const r = coffee().getBoundingClientRect();
+    return {
+      left: window.innerWidth - r.width - DOCK_MARGIN,
+      top: window.innerHeight - r.height - DOCK_MARGIN,
+    };
+  }
+
+  function placeCoffee(left, top) {
+    const c = coffee();
+    c.style.left = `${left}px`;
+    c.style.top = `${top}px`;
+  }
+
+  function coffeeToAnchor(animate) {
+    const a = $('#coffee-anchor').getBoundingClientRect();
+    const c = coffee();
+    c.classList.remove('docked');
+    if (animate && !reducedMotion()) {
+      c.classList.add('traveling');
+      placeCoffee(a.left, a.top);
+      c.addEventListener('transitionend', () => c.classList.remove('traveling'), { once: true });
+    } else {
+      c.classList.remove('traveling');
+      placeCoffee(a.left, a.top);
+    }
+  }
+
+  function coffeeToDock(animate) {
+    const c = coffee();
+    const t = dockTarget();
+    if (animate && !reducedMotion()) {
+      c.classList.add('traveling');
+      placeCoffee(t.left, t.top);
+      c.addEventListener('transitionend', () => {
+        c.classList.remove('traveling');
+        c.classList.add('docked');
+      }, { once: true });
+    } else {
+      c.classList.remove('traveling');
+      placeCoffee(t.left, t.top);
+      c.classList.add('docked');
+    }
+  }
+
+  function showLanding(animateButton) {
+    landing().hidden = false;
+    landing().classList.remove('hide');
+    // wait a frame so the anchor has a layout box to measure
+    requestAnimationFrame(() => coffeeToAnchor(animateButton));
+  }
+
+  function dismissLanding() {
+    store.set(LANDING_KEY, '1');
+    landing().classList.add('hide');
+    // the overlay fades beneath the button — the button doesn't move
+    // until the fade is mostly done, THEN glides to its dock
+    setTimeout(() => {
+      landing().hidden = true;
+      coffeeToDock(true);
+    }, reducedMotion() ? 0 : 380);
+  }
+
+  function initLanding() {
+    coffee().hidden = false;
+    if (store.get(LANDING_KEY)) {
+      // returning visitor: straight to the game, button pre-docked
+      coffeeToDock(false);
+    } else {
+      showLanding(false);
+    }
+    $('#start-btn').addEventListener('click', dismissLanding);
+    $('#about-btn').addEventListener('click', () => showLanding(true));
+    landing().addEventListener('click', e => {
+      if (e.target === landing()) dismissLanding();
+    });
+    window.addEventListener('resize', () => {
+      if (!landing().hidden) {
+        requestAnimationFrame(() => coffeeToAnchor(false));
+      } else {
+        coffeeToDock(false);
+      }
+    });
+  }
+
   /* ---------- wiring ---------- */
   function init() {
     load();
@@ -748,6 +850,7 @@
     renderCore();
     renderInventory();
     checkAchievements();
+    initLanding();
   }
 
   document.addEventListener('DOMContentLoaded', init);
