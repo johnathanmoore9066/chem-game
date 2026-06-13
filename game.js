@@ -808,6 +808,82 @@
     }
   }
 
+  /* ============================================================
+     SUGGEST-A-REACTION DIALOG
+     ============================================================
+     Teachers asked (well, the intro promised): a way to get their
+     curriculum's reactions into the game. Two paths, one dialog:
+     - email: mailto pre-filled with the README's template, plus a
+       copy button because webmail users often have no mailto handler
+     - GitHub: deep link to the README's contributor walkthrough */
+  const SUGGEST_EMAIL = 'johnathanmoore@elementfusion.org';
+  const SUGGEST_SUBJECT = '[Element Fusion] New reaction: <compound name>';
+  // Mirrors README → "Add your own chemistry". If the README template
+  // changes, change this too.
+  const SUGGEST_TEMPLATE = `Hi Johnathan,
+
+I'd like to suggest a new reaction for Element Fusion.
+
+// ---------- ITEM (one per new substance) ----------
+{ id:'',            // lowercase-with-dashes, unique
+  name:'',          // display name
+  formula:'',       // real unicode subscripts: ₀₁₂₃₄₅₆₇₈₉
+  kind:'compound',  // 'compound' or 'element'
+  starter:false,
+  category:'',      // pick ONE: salt, oxide, acid, base, organic, ...
+                    // (full list in the README, linked below)
+  tags:[],          // a few searchable keywords
+  blurb:'',         // what it is, chemically - one or two sentences
+  use:'',           // where it shows up in the real world
+  funFact:'' },     // the thing a student repeats at dinner
+
+// ---------- RECIPE (how to make it) ----------
+{ inputs:[],        // ids of ingredients; duplicates = stoichiometry
+  output:'',        // the item id above
+  note:'' },        // the equation and WHY it works - the teaching moment
+  // add  mode:'fusion'  before output if it's a nuclear reaction
+
+Full field guide and house rules:
+https://github.com/johnathanmoore9066/chem-game#add-your-own-chemistry
+
+Thanks!
+`;
+
+  function initSuggest() {
+    const dlg = $('#suggest-dialog');
+    const open = () => dlg.showModal(); // top layer: works over the landing too
+
+    $('#suggest-btn').addEventListener('click', open);
+    $('#landing-suggest-link').addEventListener('click', e => {
+      e.preventDefault();
+      open();
+    });
+    $('#close-suggest').addEventListener('click', () => dlg.close());
+    dlg.addEventListener('click', e => {
+      if (e.target === dlg) dlg.close();
+    });
+
+    $('#suggest-email-link').href =
+      `mailto:${SUGGEST_EMAIL}` +
+      `?subject=${encodeURIComponent(SUGGEST_SUBJECT)}` +
+      `&body=${encodeURIComponent(SUGGEST_TEMPLATE)}`;
+
+    const copyBtn = $('#copy-template-btn');
+    copyBtn.addEventListener('click', async () => {
+      const payload =
+        `To: ${SUGGEST_EMAIL}\nSubject: ${SUGGEST_SUBJECT}\n\n${SUGGEST_TEMPLATE}`;
+      try {
+        await navigator.clipboard.writeText(payload);
+        const label = copyBtn.textContent;
+        copyBtn.textContent = 'copied!';
+        setTimeout(() => { copyBtn.textContent = label; }, 1600);
+      } catch {
+        // clipboard API blocked (http, old browser): show it instead
+        window.prompt('Copy the template below:', payload);
+      }
+    });
+  }
+
   /* ---------- wiring ---------- */
   function init() {
     load();
@@ -877,6 +953,7 @@
     renderInventory();
     checkAchievements();
     initLanding();
+    initSuggest();
   }
 
   document.addEventListener('DOMContentLoaded', init);

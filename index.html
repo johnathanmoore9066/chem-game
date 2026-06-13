@@ -26,6 +26,7 @@
       <button id="trophy-btn" class="topbar-btn" type="button">
         🏆 <span id="trophy-count">0/0</span>
       </button>
+      <button id="suggest-btn" class="topbar-btn" type="button">🧪 Suggest a reaction</button>
       <button id="about-btn" class="topbar-btn" type="button">About</button>
       <button id="reset-btn" class="topbar-btn" type="button">Reset</button>
     </header>
@@ -102,7 +103,8 @@
       <ul class="landing-points">
         <li><strong>Free, for everyone.</strong> Built for classrooms, curious kids, and anyone who ever wondered why water is H₂O.</li>
         <li><strong>No accounts. No tracking. No data collected.</strong> Your progress saves only to your own browser — nothing ever leaves your device.</li>
-        <li><strong>Open chemistry.</strong> All reactions live in one readable data file — teachers can extend it with their own curriculum.</li>
+        <li><strong>Open chemistry.</strong> All reactions live in one readable data file — teachers can extend it with their own curriculum.
+          <a href="#" id="landing-suggest-link" class="suggest-link">Suggest a reaction&nbsp;→</a></li>
       </ul>
       <button id="start-btn" type="button">Start experimenting</button>
       <p class="landing-support">
@@ -132,6 +134,48 @@
       <button id="close-dialog" type="button" aria-label="Close">×</button>
     </div>
     <div id="achievements-list"></div>
+  </dialog>
+
+  <!-- Suggest-a-reaction dialog -->
+  <dialog id="suggest-dialog">
+    <div class="dialog-head">
+      <h2>Suggest a reaction</h2>
+      <button id="close-suggest" class="dialog-close" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="suggest-body">
+      <p class="suggest-lede">
+        Teaching a reaction the game doesn't have? It's built to be extended —
+        all of the chemistry lives in one data file, and adding to it takes one
+        filled-out template. Two ways to send yours in:
+      </p>
+
+      <div class="suggest-option">
+        <h3>✉️ Email it in <span class="suggest-tag">no account needed</span></h3>
+        <p>
+          Send a filled-out template to
+          <a id="suggest-email-link" href="mailto:johnathanmoore@elementfusion.org">johnathanmoore@elementfusion.org</a>.
+          That link pre-fills the template for you — or
+          <button id="copy-template-btn" class="ghost-btn inline-ghost" type="button">copy the template</button>
+          and paste it into any email.
+        </p>
+      </div>
+
+      <div class="suggest-option">
+        <h3>🔀 Submit it yourself <span class="suggest-tag">via GitHub</span></h3>
+        <p>
+          Comfortable with GitHub — or willing to try? The
+          <a href="https://github.com/johnathanmoore9066/chem-game#add-your-own-chemistry"
+             target="_blank" rel="noopener noreferrer">contributor guide in the README</a>
+          has the full template, the house rules, and a never-used-GitHub-before
+          walkthrough: fork, edit <code>data.js</code>, open a pull request.
+        </p>
+      </div>
+
+      <p class="suggest-note">
+        Every submission is reviewed for chemical accuracy. Complete templates
+        get plugged in as-is — and you get credited in the next update.
+      </p>
+    </div>
   </dialog>
 
   <script src="data.js"></script>
