@@ -1,0 +1,45 @@
+# robots.txt — Element Fusion (https://elementfusion.org)
+# All crawlers welcome. The whole site is one public page.
+
+User-agent: *
+Allow: /
+
+# ── AI / LLM crawlers — explicitly welcome ──────────────────────────────────
+# OpenAI (ChatGPT)
+User-agent: GPTBot
+Allow: /
+
+# OpenAI (SearchGPT / web browsing)
+User-agent: OAI-SearchBot
+Allow: /
+
+# Anthropic (Claude)
+User-agent: ClaudeBot
+Allow: /
+
+# Anthropic (Claude training)
+User-agent: anthropic-ai
+Allow: /
+
+# Perplexity
+User-agent: PerplexityBot
+Allow: /
+
+# Google Bard / Gemini
+User-agent: Google-Extended
+Allow: /
+
+# Meta AI
+User-agent: FacebookBot
+Allow: /
+
+# Cohere
+User-agent: cohere-ai
+Allow: /
+
+# Common
+User-agent: CCBot
+Allow: /
+
+# ── Sitemap ──────────────────────────────────────────────────────────────────
+Sitemap: https://elementfusion.org/sitemap.xml

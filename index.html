@@ -3,7 +3,152 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Element Fusion — Chemistry Discovery</title>
+  <title>Element Fusion — Free Chemistry Discovery Game for Classrooms</title>
+
+  <!-- ── Core SEO ── -->
+  <meta name="description" content="Element Fusion is a free, browser-based chemistry sandbox for middle and high school classrooms. Drag elements together to discover real compounds and reactions — nuclear fusion in the Stellar Core, bench chemistry everywhere else. No accounts, no tracking, nothing to install.">
+  <meta name="keywords" content="chemistry game, free chemistry game for classrooms, element combination game, chemistry sandbox, chemistry education, compound discovery, periodic table game, high school chemistry, middle school chemistry, nuclear fusion game, chemistry teaching tool">
+  <meta name="author" content="Johnathan Moore">
+  <link rel="canonical" href="https://elementfusion.org/">
+
+  <!-- ── Open Graph (Facebook, Discord, Slack, iMessage, etc.) ── -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://elementfusion.org/">
+  <meta property="og:title" content="Element Fusion — Free Chemistry Discovery Game for Classrooms">
+  <meta property="og:description" content="Drag elements into each other and discover real compounds through real reactions. Free, browser-based, no accounts or installs — built for classrooms and curious minds.">
+  <meta property="og:site_name" content="Element Fusion">
+
+  <!-- ── Twitter / X card ── -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Element Fusion — Free Chemistry Discovery Game">
+  <meta name="twitter:description" content="A free, browser-based chemistry sandbox. Drag elements together, discover real compounds, learn the actual chemistry. Built for classrooms.">
+
+  <!-- ── Structured data: SoftwareApplication ── -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Element Fusion",
+    "url": "https://elementfusion.org/",
+    "applicationCategory": "EducationalApplication",
+    "applicationSubCategory": "Chemistry",
+    "operatingSystem": "Any (browser-based)",
+    "browserRequirements": "Requires a modern web browser (Chrome, Firefox, Safari, Edge)",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "description": "Element Fusion is a free, browser-based chemistry sandbox for middle and high school classrooms. Students drag elements onto a canvas and combine them to discover real chemical compounds and nuclear fusion reactions. Every discovery includes the actual chemistry: what was made, why it works, and where it shows up in the real world. No accounts, no tracking, no installation — progress saves only to the student's own browser via localStorage.",
+    "author": {
+      "@type": "Person",
+      "name": "Johnathan Moore",
+      "email": "johnathanmoore@elementfusion.org"
+    },
+    "educationalLevel": ["MiddleSchool", "HighSchool", "Undergraduate"],
+    "audience": {
+      "@type": "EducationalAudience",
+      "educationalRole": ["student", "teacher"]
+    },
+    "learningResourceType": "Interactive simulation",
+    "educationalUse": ["classroomActivity", "homework", "selfStudy"],
+    "teaches": ["chemistry", "chemical compounds", "nuclear fusion", "nucleosynthesis", "periodic table", "chemical reactions"],
+    "isAccessibleForFree": true,
+    "license": "https://opensource.org/licenses/MIT",
+    "codeRepository": "https://github.com/johnathanmoore9066/chem-game",
+    "keywords": "chemistry game, element combination, compound discovery, free classroom tool, chemistry sandbox, periodic table, nuclear fusion, chemistry education"
+  }
+  </script>
+
+  <!-- ── Structured data: FAQPage ── -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is Element Fusion free?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Element Fusion is completely free and will stay free. There are no paid tiers, subscriptions, or locked content. The entire game, including all reactions and compounds, is available to everyone at no cost."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do students need to create accounts?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Element Fusion requires no accounts, logins, or sign-ups of any kind. Progress saves automatically to the student's own browser using localStorage. No data ever leaves the student's device."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does Element Fusion track students or collect data?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Element Fusion collects no data whatsoever. There is no analytics, no tracking, no cookies, and no server-side storage. Progress saves only to the student's own browser via localStorage and never leaves their device. This makes it safe to use in any classroom without COPPA, FERPA, or GDPR concerns."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does Element Fusion need to be installed?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Element Fusion runs entirely in the browser. Open the URL, play — that's the entire setup process. No download, no app install, no IT department required. It works on any modern desktop browser (Chrome, Firefox, Safari, Edge)."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What grade levels is Element Fusion appropriate for?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Element Fusion is designed primarily for middle and high school chemistry classes, but it works well for any curious learner. Younger students can explore bench chemistry (compounds, acids, salts); older students can explore nucleosynthesis and stellar fusion. The discovery log explains the chemistry behind every reaction at an accessible level."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What chemistry topics does Element Fusion cover?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Element Fusion covers two main areas: (1) bench chemistry — combining elements and compounds to discover acids, salts, oxides, organic molecules, alloys, and more; and (2) stellar nucleosynthesis — fusing elements inside the Stellar Core to replicate the proton-proton chain, triple-alpha process, and the alpha ladder from carbon to iron. Every reaction is real chemistry, not invented game logic."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can teachers add their own reactions or compounds?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. All of the chemistry lives in a single readable JavaScript file (data.js). Teachers can add new compounds and reactions by filling out a documented template and either emailing it to johnathanmoore@elementfusion.org or submitting a pull request on GitHub at https://github.com/johnathanmoore9066/chem-game. Complete submissions can be plugged in as-is and are credited in the next update."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is Element Fusion open source?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Element Fusion is licensed under the MIT license. The full source code is available at https://github.com/johnathanmoore9066/chem-game. Teachers and developers are welcome to fork it, extend it, or run their own version."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the Stellar Core in Element Fusion?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The Stellar Core is a glowing zone at the center of the reaction canvas where nuclear fusion reactions take place. Reactions that require stellar temperatures — like fusing hydrogen into helium or climbing the alpha ladder to iron — only work inside the core. The same two elements behave differently depending on whether they collide on the bench or inside the core, mirroring how real chemistry and nuclear physics differ."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does Element Fusion work on tablets or phones?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Element Fusion works on mobile browsers but is optimized for desktop use. The drag-and-drop reaction mechanic is most natural with a mouse or trackpad. On touch devices, the interface stacks into a single-column layout, but the drag mechanic may be less precise on smaller screens."
+        }
+      }
+    ]
+  }
+  </script>
 
   <!-- Fonts: graceful fallback to system fonts if offline -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -106,6 +251,32 @@
         <li><strong>Open chemistry.</strong> All reactions live in one readable data file — teachers can extend it with their own curriculum.
           <a href="#" id="landing-suggest-link" class="suggest-link">Suggest a reaction&nbsp;→</a></li>
       </ul>
+      <details class="landing-faq">
+        <summary class="landing-faq-toggle">Frequently asked questions</summary>
+        <dl class="faq-list">
+          <div class="faq-item">
+            <dt>Is this actually free?</dt>
+            <dd>Yes — no paid tiers, no locked content, no catch. If it helps your classroom, there's an optional "buy me a coffee" link, but that's it.</dd>
+          </div>
+          <div class="faq-item">
+            <dt>Do students need accounts?</dt>
+            <dd>No accounts, no sign-ups, no logins. Progress saves to the student's own browser and never leaves their device — zero COPPA/FERPA concerns.</dd>
+          </div>
+          <div class="faq-item">
+            <dt>Does it need to be installed?</dt>
+            <dd>No. Open the URL, play. Works in any modern desktop browser; no download or IT approval required.</dd>
+          </div>
+          <div class="faq-item">
+            <dt>Can I add reactions from my curriculum?</dt>
+            <dd>Yes. All chemistry lives in one readable file. Fill out a template and email it in — or submit a GitHub pull request if you're comfortable with that. Both options are under the 🧪 "Suggest a reaction" button above.</dd>
+          </div>
+          <div class="faq-item">
+            <dt>What grade level is this for?</dt>
+            <dd>Primarily middle and high school chemistry, but the stellar nucleosynthesis track works well for intro physics too. Any curious learner is welcome.</dd>
+          </div>
+        </dl>
+      </details>
+
       <button id="start-btn" type="button">Start experimenting</button>
       <p class="landing-support">
         This project runs on goodwill. If it helps your classroom,

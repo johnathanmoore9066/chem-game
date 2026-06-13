@@ -1,0 +1,43 @@
+# Element Fusion
+
+> A free, browser-based chemistry discovery sandbox for middle and high school classrooms.
+
+Element Fusion is an open-source, single-page web application where students drag elements onto a canvas and combine them to discover real chemical compounds and nuclear fusion reactions. Every discovery includes the actual chemistry: what was made, why it works, and where it shows up in the real world. The game covers two domains: bench chemistry (compounds, acids, salts, oxides, organics, alloys) and stellar nucleosynthesis (the proton-proton chain, triple-alpha process, and the alpha ladder from carbon to iron).
+
+## Key facts
+
+- **Free**: no paid tiers, no locked content, no accounts required
+- **Private**: no data collection, no analytics, no server — progress saves only to the student's browser via localStorage
+- **No install**: runs in any modern desktop browser; open the URL and play
+- **Open source**: MIT license, source at https://github.com/johnathanmoore9066/chem-game
+- **Extensible**: all chemistry lives in a single file (data.js); teachers can submit new reactions via email or pull request
+- **Audience**: middle school, high school, and introductory undergraduate chemistry and physics
+
+## What it teaches
+
+- Chemical compound formation (ionic, covalent, organic, alloys, acids, bases, salts)
+- Why certain elements don't react (noble gases, unstable isotopes)
+- Stellar nucleosynthesis: the proton-proton chain, the triple-alpha process, carbon/oxygen/silicon burning, iron as the end of fusion
+- Real-world applications for every discovered compound
+
+## How to use it
+
+Open https://elementfusion.org/ in a browser. Drag element tiles from the inventory onto the reaction canvas, then drag one node into another to attempt a reaction. The glowing circle (Stellar Core) is the only place where fusion reactions work — the same two elements behave differently inside vs. outside it.
+
+## For teachers
+
+- No accounts or IT approval required
+- Safe for all ages (no data leaves the device)
+- Reactions can be added to match your curriculum: fill out a template and email johnathanmoore@elementfusion.org or submit a GitHub pull request
+- Submission template and contributor guide: https://github.com/johnathanmoore9066/chem-game#add-your-own-chemistry
+
+## Contact
+
+- Email: johnathanmoore@elementfusion.org
+- GitHub: https://github.com/johnathanmoore9066/chem-game
+- Support (optional): https://ko-fi.com/johnathanmoore9066
+
+## Optional: full source
+
+- https://elementfusion.org/ — the game
+- https://github.com/johnathanmoore9066/chem-game — full source code and contributor documentation

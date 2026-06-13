@@ -883,6 +883,56 @@ dialog::backdrop { background: rgba(10, 11, 20, 0.7); }
 }
 .landing-points strong { color: var(--ink); }
 
+/* ---------- landing FAQ accordion ---------- */
+.landing-faq {
+  margin: 0 0 24px;
+  border: 1px solid var(--panel-edge);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.landing-faq-toggle {
+  display: block;
+  padding: 10px 14px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.landing-faq-toggle::-webkit-details-marker { display: none; }
+.landing-faq-toggle::before {
+  content: '▸ ';
+  color: var(--accent);
+  font-size: 0.65rem;
+}
+details[open] .landing-faq-toggle::before { content: '▾ '; }
+.landing-faq-toggle:hover { color: var(--ink); }
+
+.faq-list {
+  margin: 0;
+  padding: 0 14px 12px;
+  display: grid;
+  gap: 10px;
+}
+.faq-item { display: contents; }
+.faq-list dt {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  color: var(--ink);
+  margin: 4px 0 2px;
+}
+.faq-list dd {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--ink-dim);
+  padding-left: 12px;
+  border-left: 2px solid color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
 #start-btn {
   font-family: var(--font-display);
   font-size: 1.05rem;
