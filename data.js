@@ -289,7 +289,7 @@ window.GAME_DATA = (() => {
       tags:['radical','molecule','atmospheric'],
       blurb:'A stable free radical — one unpaired electron, yet it survives long enough to act as a signaling molecule in your body.',
       use:'Vasodilation signaling, semiconductor manufacturing.',
-      funFact:'NO is how Viagra works (it amplifies NO signaling) and why nitroglycerin treats chest pain. The discovery of NO as a signal molecule won the 1998 Nobel Prize.' },
+      funFact:'NO is why nitroglycerin treats chest pain — it releases NO, which tells blood vessels to relax and widen. The discovery of NO as a signaling molecule won the 1998 Nobel Prize in Physiology.' },
 
     { id:'nitrogen-dioxide', name:'Nitrogen Dioxide', formula:'NO₂', kind:'compound', starter:false, category:'atmospheric',
       tags:['molecule','toxic','atmospheric'],
