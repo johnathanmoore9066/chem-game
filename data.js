@@ -204,7 +204,7 @@ window.GAME_DATA = (() => {
       tags:['organic','molecule','toxic'],
       blurb:'The simplest alcohol — methane with one hydrogen swapped for a hydroxyl group. Toxic because your liver oxidizes it into formaldehyde.',
       use:'Fuel, antifreeze, solvent, feedstock for formaldehyde and plastics.',
-      funFact:'The treatment for methanol poisoning is, historically, ethanol — regular alcohol keeps the liver enzyme busy so methanol passes through unconverted.' },
+      funFact:'Methanol is toxic because your liver converts it into formaldehyde. A tiny amount — as little as 10 mL — can cause permanent blindness. It looks and smells almost identical to ethanol, which is why mislabeled industrial solvents have caused mass poisonings throughout history.' },
 
     { id:'formaldehyde', name:'Formaldehyde', formula:'CH₂O', kind:'compound', starter:false, category:'organic',
       tags:['organic','molecule','toxic'],
@@ -234,7 +234,7 @@ window.GAME_DATA = (() => {
       tags:['organic','molecule'],
       blurb:'Drinking alcohol — an ethyl group wearing a hydroxyl. Industrially made by hydrating ethylene; biologically by yeast.',
       use:'Beverages, fuel additive, solvent, antiseptic.',
-      funFact:'There\'s a molecular cloud near the center of the galaxy containing roughly 10²⁸ liters of ethanol. Unfortunately it\'s spread across light-years.' },
+      funFact:'There\'s a molecular cloud near the center of the galaxy containing roughly 10²⁸ liters of ethanol — enough to fill the Earth\'s oceans roughly a trillion times over. Organic molecules form spontaneously in space, which is part of why scientists think chemistry is woven into the universe itself.' },
 
     { id:'acetic-acid', name:'Acetic Acid', formula:'CH₃COOH', kind:'compound', starter:false, category:'acid',
       tags:['organic','acid','molecule'],
@@ -569,7 +569,7 @@ window.GAME_DATA = (() => {
     { inputs:['salt','water'], output:'salt-water',
       note:'Dissolution, not reaction: polar water molecules surround and pry apart the Na⁺ and Cl⁻ ions. Free-floating ions are why salt water conducts electricity and pure water barely does.' },
     { inputs:['na','water'], output:'sodium-hydroxide',
-      note:'2Na + 2H₂O → 2NaOH + H₂↑. The hydrogen often ignites from the reaction heat — the classic "sodium in the lake" demonstration teachers are no longer allowed to do.' },
+      note:'2Na + 2H₂O → 2NaOH + H₂↑. Sodium reduces water, releasing hydrogen gas — which often ignites from the heat of the reaction itself. The sodium is oxidized, the water is split, and the result is a strongly alkaline solution.' },
     { inputs:['hydrochloric-acid','sodium-hydroxide'], output:'salt-water',
       note:'Neutralization: HCl + NaOH → NaCl + H₂O. Strong acid + strong base = salt + water, releasing ~57 kJ/mol. The pH meets in the middle at 7.' },
     { inputs:['cl','sodium-hydroxide'], output:'bleach',
